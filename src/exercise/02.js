@@ -4,24 +4,37 @@
 import * as React from 'react'
 import {Switch} from '../switch'
 
-function Toggle(props) {
+const ToggleContext = React.createContext()
+
+function Toggle({children}) {
   const [on, setOn] = React.useState(false)
   const toggle = () => setOn(!on)
 
-  return React.Children.map(props.children, child => {
-    if (typeof child.type === 'string') return child
-    return React.cloneElement(child, {
-      on,
-      toggle,
-    })
-  })
+  return (
+    <ToggleContext.Provider value={{on, toggle}}>
+      {children}
+    </ToggleContext.Provider>
+  )
 }
 
-const ToggleOn = ({on, children}) => on && children
+function useToggle() {
+  return React.useContext(ToggleContext)
+}
 
-const ToggleOff = ({on, children}) => !on && children
+const ToggleOn = ({children}) => {
+  const {on} = useToggle()
+  return on && children
+}
 
-const ToggleButton = ({on, toggle}) => <Switch on={on} onClick={toggle} />
+const ToggleOff = ({children}) => {
+  const {on} = useToggle()
+  return !on && children
+}
+
+const ToggleButton = props => {
+  const {on, toggle} = useToggle()
+  return <Switch on={on} onClick={toggle} />
+}
 
 function App() {
   return (
@@ -29,8 +42,9 @@ function App() {
       <Toggle>
         <ToggleOn>The button is on</ToggleOn>
         <ToggleOff>The button is off</ToggleOff>
-        <span>Hello</span>
-        <ToggleButton />
+        <div>
+          <ToggleButton />
+        </div>
       </Toggle>
     </div>
   )
